@@ -649,6 +649,13 @@ var bot = window.bot = (function() {
                 if (window.snakes[snake] !== undefined &&
                     window.snakes[snake].alive_amt === 1) {	
 
+					
+					if (window.snakes[snake].sp > 8) {
+						bot.isHunting=false;
+						bot.targetSnake=0;	
+						return;
+						
+					}
 					scPoint = {
 						xx: window.snakes[snake].xx,
 						yy: window.snakes[snake].yy,
@@ -660,7 +667,23 @@ var bot = window.bot = (function() {
 						window.snakes[snake].yy-window.snake.yy , window.snakes[snake].xx-window.snake.xx);
 					var relAng = Math.abs(bot.angleBetween(window.snakes[snake].ang, toSankeAng));
 					
+					if (!(relAng > Math.PI / 2 && relAng < Math.PI * 1.3)) {
+					
+						bot.isHunting=false;
+						bot.targetSnake=0;	
+						return;
+						
+					}
+					
 					var offset=Math.sqrt(scPoint.distance) * (relAng+1) / (3 * bot.speedMult);
+					
+					if (offset > bot.headCircleRadius * 1.5) {
+						bot.isHunting=false;
+						bot.targetSnake=0;	
+						return;
+						
+					}
+					
 					var goalCoordinates = {
 											x: (window.snakes[snake].xx+offset*Math.cos(window.snakes[snake].ang)),
 											y: (window.snakes[snake].yy+offset*Math.sin(window.snakes[snake].ang))
@@ -678,6 +701,11 @@ var bot = window.bot = (function() {
 							goalCoordinates.y,
 							30),
 						'red', true);
+						canvasUtil.drawCircle(canvasUtil.circle(
+							goalCoordinates.x,
+							goalCoordinates.y,
+							150),
+						'yellow', false);
 						bot.currentFood=goalCoordinates;
 						return;
 					}
@@ -692,7 +720,11 @@ var bot = window.bot = (function() {
 							goalCoordinates.y,
 							30),
 						'red', true);
-					
+						canvasUtil.drawCircle(canvasUtil.circle(
+							goalCoordinates.x,
+							goalCoordinates.y,
+							150),
+						'yellow', false);					
 						bot.currentFood=goalCoordinates;
 						return;
 					}
@@ -722,7 +754,7 @@ var bot = window.bot = (function() {
                 if (window.snakes[snake].id !== window.snake.id &&
                     window.snakes[snake].alive_amt === 1) {
 
-					if (window.snakes[snake].sc > 0.2 && window.snakes[snake].sp < 8)
+					if (window.snakes[snake].sc > 1.1 && window.snakes[snake].sp < 8)
 					{
 					
 						
@@ -739,8 +771,9 @@ var bot = window.bot = (function() {
 
 						if (scPoint.distance < huntCircleRadius2 && scPoint.distance > minHuntCircleRadius2 && Math.abs(bot.angleBetween(window.snake.ehang, toSankeAng)) < Math.PI /2  ) {
 							var relAng = Math.abs(bot.angleBetween(window.snakes[snake].ang, toSankeAng));
+	
 						
-							if (relAng > Math.PI / 10 && relAng < Math.PI / 1.7) {
+							if (relAng > Math.PI / 2 && relAng < Math.PI * 1.3) {
 								bot.targetSnake=snake;
 							
 								if (window.visualDebugging && true) {
