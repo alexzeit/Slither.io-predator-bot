@@ -369,7 +369,7 @@ var bot = window.bot = (function() {
 		arcSize: Math.PI / 20,
 		mGoToAngle: Math.PI,
 		mouseFollow: false,
-		predatorMode: false,
+		predatorMode: true,
 		lookForSnakeDelayCnt: 0,
 		lookForSnakeDelay: 50,
 		isHunting: false,
@@ -1106,7 +1106,7 @@ var bot = window.bot = (function() {
         checkCollision: function() {
 
 			bot.headCircleRadius = bot.opt.radiusMult * (bot.snakeRadius) / 1.8;
-			if (bot.predatorMode) bot.headCircleRadius=bot.headCircleRadius*1.2;
+			if (bot.predatorMode) bot.headCircleRadius=bot.headCircleRadius*1.5;
 			bot.frontArcAngle = bot.arcSize;
 			bot.frontArcRadius = bot.speedMult * bot.headCircleRadius * 1.2 ;
 			if (bot.targetSnake!==0)
@@ -1484,7 +1484,9 @@ var bot = window.bot = (function() {
 					
             }
 			
-			if (window.visualDebugging && !bot.manualFood) {
+			if (window.visualDebugging && (!bot.manualFood || bot.isCollision)) {
+				arowcolor="green";
+				if (bot.isCollision) arowcolor="yellow";
 				canvasUtil.drawLine({
 						x: window.snake.xx,
 						y: window.snake.yy
@@ -1492,7 +1494,7 @@ var bot = window.bot = (function() {
 						x: window.snake.xx + bot.headCircleRadius * Math.cos(bot.gotoAngle) * 2,
 						y: window.snake.yy + bot.headCircleRadius * Math.sin(bot.gotoAngle) * 2
 					},
-					'green');
+					arowcolor);
 				canvasUtil.drawLine({
 						x: window.snake.xx + bot.headCircleRadius * Math.cos(bot.gotoAngle) * 2,
 						y: window.snake.yy + bot.headCircleRadius * Math.sin(bot.gotoAngle) * 2
@@ -1500,7 +1502,7 @@ var bot = window.bot = (function() {
 						x: window.snake.xx + bot.headCircleRadius * Math.cos(bot.gotoAngle+0.2) * 1.7,
 						y: window.snake.yy + bot.headCircleRadius * Math.sin(bot.gotoAngle+0.2) * 1.7
 					},
-					'green');
+					arowcolor);
 				canvasUtil.drawLine({
 						x: window.snake.xx + bot.headCircleRadius * Math.cos(bot.gotoAngle) * 2,
 						y: window.snake.yy + bot.headCircleRadius * Math.sin(bot.gotoAngle) * 2
@@ -1508,7 +1510,7 @@ var bot = window.bot = (function() {
 						x: window.snake.xx + bot.headCircleRadius * Math.cos(bot.gotoAngle-0.2) * 1.7,
 						y: window.snake.yy + bot.headCircleRadius * Math.sin(bot.gotoAngle-0.2) * 1.7
 					},
-					'green');
+					arowcolor);
 			}
 
 			
@@ -1982,7 +1984,7 @@ var userInterface = window.userInterface = (function() {
 
             if (window.playing && window.visualDebugging) {
                 // Only draw the goal when a bot has a goal.
-                if (window.goalCoordinates && bot.isBotEnabled && !bot.manualFood) {
+                if (window.goalCoordinates && bot.isBotEnabled && !bot.manualFood && !bot.isCollision) {
                     var headCoord = {
                         x: window.snake.xx,
                         y: window.snake.yy
