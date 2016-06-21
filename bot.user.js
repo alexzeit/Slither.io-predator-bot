@@ -1108,7 +1108,7 @@ var bot = window.bot = (function() {
         checkCollision: function() {
 
 			bot.headCircleRadius = bot.opt.radiusMult * (bot.snakeRadius) / 1.8;
-			if (bot.predatorMode) bot.headCircleRadius=bot.headCircleRadius*0.8;
+			if (bot.predatorMode) bot.headCircleRadius=bot.headCircleRadius*1.0;
 			bot.frontArcAngle = bot.arcSize;
 			bot.frontArcRadius = bot.speedMult * bot.headCircleRadius * 1.2 ;
 			if (bot.targetSnake!==0)
