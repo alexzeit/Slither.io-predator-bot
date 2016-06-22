@@ -654,7 +654,7 @@ var bot = window.bot = (function() {
                     window.snakes[snake].alive_amt === 1) {	
 
 					
-					if (window.snakes[snake].sp > 8) {
+					if (window.snakes[snake].sp > 7) {
 						bot.isHunting=false;
 						bot.targetSnake=0;	
 						return bot.defaultAccel;
@@ -679,7 +679,7 @@ var bot = window.bot = (function() {
 						
 					}
 					
-					var offset=80+  (Math.sqrt(scPoint.distance)) / ( bot.speedMult) / (Math.abs(relAng-Math.PI/1.5)+1) / 2;
+					var offset = 90 + (Math.sqrt(scPoint.distance)) / ( bot.speedMult) / (Math.abs(relAng-Math.PI/1.5)+1) / 2;
 					
 					if (offset > 500) {
 						bot.isHunting=false;
@@ -736,7 +736,7 @@ var bot = window.bot = (function() {
                 if (window.snakes[snake].id !== window.snake.id &&
                     window.snakes[snake].alive_amt === 1) {
 
-					if (window.snakes[snake].sc > 1.01 && window.snakes[snake].sp < 8)
+					if (window.snakes[snake].sc > 1.1 && window.snakes[snake].sp < 7)
 					{
 					
 						
@@ -1119,8 +1119,9 @@ var bot = window.bot = (function() {
 				bot.headCircleRadius=bot.headCircleRadiu/10;
 			}
 			
-			
-			bot.isCollision--;
+			if (bot.isCollision > 0)
+				bot.isCollision--;
+				
 			bot.fencingSnake = false;
 			bot.isHeadCollision = false;
 			bot.frontCollision = 0;
@@ -1400,9 +1401,6 @@ var bot = window.bot = (function() {
                         bot.foodTimer, 1000 / bot.opt.targetFps * bot.foodFrames);
                 }
 				
-				if (bot.manualFood)
-					window.setAcceleration(bot.defaultAccel);				
-				else
 				{
 					
 				
@@ -1442,13 +1440,17 @@ var bot = window.bot = (function() {
 								if (bot.targetSnake !== 0)
 								{
 									bot.lookForFood=false;
-									canvasUtil.drawAngle(sang-Math.PI/2, sang+Math.PI/2, bot.fullHeadCircleRadius * 1.5, 'yellow', false);
-									canvasUtil.drawAngle(sang-Math.PI/2, sang+Math.PI/2, bot.headCircleRadius * 1.5, 'yellow', false);
+									if (window.visualDebugging) {
+										canvasUtil.drawAngle(sang-Math.PI/2, sang+Math.PI/2, bot.fullHeadCircleRadius * 1.5, 'yellow', false);
+										canvasUtil.drawAngle(sang-Math.PI/2, sang+Math.PI/2, bot.headCircleRadius * 1.5, 'yellow', false);
+									}
 								}
 								else
 								{
-									canvasUtil.drawAngle(sang-Math.PI/2, sang+Math.PI/2, bot.fullHeadCircleRadius * 1.5, 'green', false);
-									canvasUtil.drawAngle(sang-Math.PI/2, sang+Math.PI/2, bot.headCircleRadius * 1.5, 'green', false);
+									if (window.visualDebugging) {
+										canvasUtil.drawAngle(sang-Math.PI/2, sang+Math.PI/2, bot.fullHeadCircleRadius * 1.5, 'green', false);
+										canvasUtil.drawAngle(sang-Math.PI/2, sang+Math.PI/2, bot.headCircleRadius * 1.5, 'green', false);
+									}
 								}
 									
 							}
@@ -1458,11 +1460,19 @@ var bot = window.bot = (function() {
 				
 					if (bot.targetSnake === 0)
 						tAccel = bot.foodAccel();
-					window.setAcceleration(tAccel);
-					bot.targetAcceleration = tAccel;
+						
+		
 					
-					window.goalCoordinates = bot.currentFood;
-					canvasUtil.setMouseCoordinates(canvasUtil.mapToMouse(window.goalCoordinates));
+					if (bot.targetSnake !== 0 || !bot.manualFood) {
+	
+						window.setAcceleration(tAccel);
+						bot.targetAcceleration = tAccel;
+						
+						window.goalCoordinates = bot.currentFood;
+						canvasUtil.setMouseCoordinates(canvasUtil.mapToMouse(window.goalCoordinates));
+					}
+					else
+						window.setAcceleration(bot.defaultAccel);	
 				}
 
 
@@ -2014,6 +2024,7 @@ var userInterface = window.userInterface = (function() {
 
             if (window.playing && bot.isBotEnabled && window.snake !== null) {
                 window.onmousemove = function(b) {
+				
 					if (bot.manualFood && bot.isCollision===0) original_onmousemove();
 					if (bot.mouseFollow){
 					bot.mGoToAngle = canvasUtil.mouseAngle(b);
