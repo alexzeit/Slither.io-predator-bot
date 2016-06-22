@@ -657,7 +657,7 @@ var bot = window.bot = (function() {
 					if (window.snakes[snake].sp > 8) {
 						bot.isHunting=false;
 						bot.targetSnake=0;	
-						return;
+						return bot.defaultAccel;
 						
 					}
 					scPoint = {
@@ -671,21 +671,21 @@ var bot = window.bot = (function() {
 						window.snakes[snake].yy-window.snake.yy , window.snakes[snake].xx-window.snake.xx);
 					var relAng = Math.abs(bot.angleBetween(window.snakes[snake].ang, toSankeAng));
 					
-					if (!(relAng > Math.PI / 2.2 && relAng < Math.PI /1.1)) {
+					if (!(relAng > Math.PI / 2.6 && relAng < Math.PI /1.1)) {
 					
 						bot.isHunting=false;
 						bot.targetSnake=0;	
-						return;
+						return bot.defaultAccel;
 						
 					}
 					
-					var offset=70+  (Math.sqrt(scPoint.distance)) / ( bot.speedMult) / (Math.abs(relAng-Math.PI/1.5)+1) / 2;
+					var offset=80+  (Math.sqrt(scPoint.distance)) / ( bot.speedMult) / (Math.abs(relAng-Math.PI/1.5)+1) / 2;
 					
 					if (offset > 500) {
 						bot.isHunting=false;
 						bot.targetSnake=0;	
 					
-						return;
+						return bot.defaultAccel;
 						
 					}
 					
@@ -700,7 +700,7 @@ var bot = window.bot = (function() {
 					var aIndex = bot.getAngleIndex(toPointAng);
 					var tAccel = bot.calcAcceleration(toPointAng);
 					
-					if (tAccel === 1)
+					//if (tAccel === 1)
 					{
 						canvasUtil.drawCircle(canvasUtil.circle(
 							goalCoordinates.x,
@@ -713,13 +713,14 @@ var bot = window.bot = (function() {
 							150),
 						'yellow', false);
 						bot.currentFood=goalCoordinates;
-						return;
+						return tAccel;
 					}
 					
 				}
 
 				bot.isHunting=false;
-				bot.targetSnake=0;				
+				bot.targetSnake=0;		
+				return bot.defaultAccel;
 				
 		
 		},
@@ -1387,7 +1388,7 @@ var bot = window.bot = (function() {
                         bot.foodTimer, 1000 / bot.opt.targetFps * bot.foodFrames * 2);
                 }
             } else {
-			
+				var tAccel =  bot.defaultAccel;
 
 				//if mousefollow on
 				if(bot.mouseFollow){
@@ -1403,6 +1404,7 @@ var bot = window.bot = (function() {
 					window.setAcceleration(bot.defaultAccel);				
 				else
 				{
+					
 				
 					if (bot.predatorMode)
 					{
@@ -1429,8 +1431,10 @@ var bot = window.bot = (function() {
 								if (bot.targetSnake === 0)
 									bot.isHunting=bot.getTargetSnake();
 									
+								
+									
 								if (bot.targetSnake !== 0)	
-									bot.calcHuntTargetPoint();	
+									tAccel=bot.calcHuntTargetPoint();	
 									
 								var sang = window.snake.ehang;
 	
@@ -1452,9 +1456,9 @@ var bot = window.bot = (function() {
 							
 					}
 				
-				
-					var tAccel = bot.foodAccel();
-					window.setAcceleration(bot.foodAccel());
+					if (bot.targetSnake === 0)
+						tAccel = bot.foodAccel();
+					window.setAcceleration(tAccel);
 					bot.targetAcceleration = tAccel;
 					
 					window.goalCoordinates = bot.currentFood;
