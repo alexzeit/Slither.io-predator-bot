@@ -915,7 +915,7 @@ var bot = window.bot = (function() {
 								
 								if (collisionPoint.distance>fullHeadCircleRadius2/4) 
 								{
-									var offst=Math.round(collisionPoint.distance/fullHeadCircleRadius2*3);
+									var offst=Math.round(collisionPoint.distance/fullHeadCircleRadius2*2);
 									
 									pts=pts+offst;
 									
@@ -939,7 +939,7 @@ var bot = window.bot = (function() {
 						{
 							if (fencingAngleslength !== (2 * Math.PI / bot.arcSize))
 							{
-								bot.fencingSnake = bot.holdCollision;
+								bot.fencingSnake = bot.holdCollision * 2;
 								for (i = 0; i < ((2 * Math.PI) / bot.arcSize); i++) {
 												if (fencingAngles[i] !== undefined) {						
 													if (bot.collisionAngles[i]!== undefined)
