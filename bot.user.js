@@ -187,21 +187,13 @@ var canvasUtil = window.canvasUtil = (function() {
             // Scaling ratio
             if (window.gsc) {
                 window.gsc *= Math.pow(0.9, e.wheelDelta / -120 || e.detail / 2 || 0);
-                window.desired_gsc = window.gsc;
+                
             }
         },
 
         // Restores zoom to the default value.
         resetZoom: function() {
             window.gsc = 0.9;
-            window.desired_gsc = 0.9;
-        },
-
-        // Maintains Zoom
-        maintainZoom: function() {
-            if (window.desired_gsc !== undefined) {
-                window.gsc = window.desired_gsc;
-            }
         },
 
         // Sets background to the given image URL.
@@ -1595,6 +1587,16 @@ var userInterface = window.userInterface = (function() {
     var original_onmousemove = window.onmousemove;
     window.oef = function() {};
     window.redraw = function() {};
+	
+	// Modify the redraw()-function to remove the zoom altering code
+    // and replace b.globalCompositeOperation = "lighter"; to "hard-light".
+    var original_redraw_string = original_redraw.toString();
+    var new_redraw_string = original_redraw_string.replace(
+        'gsc!=f&&(gsc<f?(gsc+=2E-4,gsc>=f&&(gsc=f)):(gsc-=2E-4,gsc<=f&&(gsc=f)))', '');
+    new_redraw_string = new_redraw_string.replace(/b.globalCompositeOperation="lighter"/gi,
+        'b.globalCompositeOperation="hard-light"');
+    var new_redraw = new Function(new_redraw_string.substring(
+        new_redraw_string.indexOf('{') + 1, new_redraw_string.lastIndexOf('}')));
 
     return {
         overlays: {},
@@ -2058,9 +2060,10 @@ var userInterface = window.userInterface = (function() {
 
         oefTimer: function() {
             var start = Date.now();
-            canvasUtil.maintainZoom();
+            //canvasUtil.maintainZoom();
             original_oef();
-            original_redraw();
+            // Modified slither.io redraw function
+            new_redraw();
 
             if (window.playing && bot.isBotEnabled && window.snake !== null) {
                 window.onmousemove = function(b) {
