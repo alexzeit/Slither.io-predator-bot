@@ -374,13 +374,14 @@ var bot = window.bot = (function() {
 		mGoToAngle: Math.PI,
 		mouseFollow: false,
 		predatorMode: true,
+		isBotRacer: false,
 		doRedraw: true,
 		resetZoomOnLowFPS: true,
 		lookForSnakeDelayCnt: 0,
 		lookForSnakeDelay: 50,
 		isHunting: false,
 		targetSnake: 0,
-		minPredatorRadius: 16,
+		minPredatorRadius: 15,
         isBotRunning: false,
         isBotEnabled: true,
         lookForFood: false,
@@ -456,7 +457,7 @@ var bot = window.bot = (function() {
 					}
 					if (bot.fencingSnake>0)
 						return 1;
-					
+
 					var turnDir = bot.indexBetween(aIndex1, aIndex2);
 					
 					if ( Math.abs(turnDir) < bot.accelAngle / bot.arcSize)
@@ -537,6 +538,24 @@ var bot = window.bot = (function() {
 					return; 
 				}
 
+				
+				var smalestDist=headCircleRadius2 * 2;
+				var smalAng=-1;
+				for (var i = 0; i < ((2 * Math.PI) / bot.arcSize); i++) {
+								if (bot.collisionAngles[i] !== undefined && bot.collisionAngles[i].distance < headCircleRadius2) {						
+									if (bot.collisionAngles[i].distance < smalestDist){
+										smalestDist=bot.collisionAngles[i].distance;
+										smalAng=i;
+									}
+								}
+				}
+				
+				if (smalAng!==-1)
+				{
+//					bot.avoidCollisionPoint(bot.collisionAngles[smalAng]);
+//					return;
+				}
+				
 				window.goalCoordinates = {
 										x: Math.round(window.snake.xx+bot.fullHeadCircleRadius*Math.cos(bot.gotoAngle)),
 										y: Math.round(window.snake.yy+bot.fullHeadCircleRadius*Math.sin(bot.gotoAngle))
@@ -552,7 +571,7 @@ var bot = window.bot = (function() {
         },
 
 
-        // Avoid collision point by ang
+ // Avoid collision point by ang
         // ang radians <= Math.PI (180deg)
         avoidCollisionPoint: function(collisionPoint, ang) {
             if (ang === undefined || ang > Math.PI) {
@@ -605,7 +624,6 @@ var bot = window.bot = (function() {
 
             canvasUtil.setMouseCoordinates(canvasUtil.mapToMouse(window.goalCoordinates));
         },
-
         // Sorting by  property 'distance'
         sortDistance: function(a, b) {
             return a.distance - b.distance;
@@ -643,12 +661,16 @@ var bot = window.bot = (function() {
                     ang:  bot.arcSize * aIndex,
                     snake: sp.snake,
                     distance: actualDistance,
+					xx: sp.xx,
+					yy: sp.yy,
 					isHead: sp.isHead
                 };
             } else if (collisionAngles[aIndex].distance > sp.distance) {
                 collisionAngles[aIndex].snake = sp.snake;
                 collisionAngles[aIndex].distance = actualDistance;
 				collisionAngles[aIndex].isHead = sp.isHead;
+				collisionAngles[aIndex].xx = sp.xx;
+				collisionAngles[aIndex].yy = sp.yy;
             }
         },
 
@@ -676,7 +698,7 @@ var bot = window.bot = (function() {
 						window.snakes[snake].yy-window.snake.yy , window.snakes[snake].xx-window.snake.xx);
 					var relAng = Math.abs(bot.angleBetween(window.snakes[snake].ang, toSankeAng));
 					
-					if (!(relAng > Math.PI / 2 && relAng < Math.PI /1.1)) {
+					if (!(relAng > Math.PI / 2.2 && relAng < Math.PI /1.1)) {
 					
 						bot.isHunting=false;
 						bot.targetSnake=0;	
@@ -684,7 +706,7 @@ var bot = window.bot = (function() {
 						
 					}
 					
-					var offset = (bot.snakeRadius+7) * 2 + 50 + (Math.sqrt(scPoint.distance)) / ( bot.speedMult) / (Math.abs(relAng-Math.PI/1.5)+1) / 2;
+					var offset = (bot.snakeRadius+10) * 1.2 + 60 + (Math.sqrt(scPoint.distance)) / ( bot.speedMult) / (Math.abs(relAng-Math.PI/1.5)+1) / 2;
 					
 					if (offset > 500) {
 						bot.isHunting=false;
@@ -794,7 +816,7 @@ var bot = window.bot = (function() {
         getCollision: function() {
             
 			var scPoint;
-			var pts, i;
+			var pts, i,snakeLength;
 			var collisionPoint;
 
             bot.collisionAngles = [];
@@ -826,7 +848,7 @@ var bot = window.bot = (function() {
                 if (window.snakes[snake].id !== window.snake.id &&
                     window.snakes[snake].alive_amt === 1) {
 
-					var snakeLength=(window.snakes[snake].sct+5)*23;
+					snakeLength=(window.snakes[snake].sct+5)*23;
 					
                     scPoint = {
                         xx: window.snakes[snake].xx,
@@ -923,7 +945,7 @@ var bot = window.bot = (function() {
 								
 								if (collisionPoint.distance>fullHeadCircleRadius2/2) 
 								{
-									var offst=Math.round(Math.sqrt(collisionPoint.distance)/bot.fullHeadCircleRadius*4);
+									var offst=Math.round(Math.sqrt(collisionPoint.distance)/bot.fullHeadCircleRadius*3);
 									
 									pts=pts+offst;
 									
@@ -1124,8 +1146,8 @@ var bot = window.bot = (function() {
 				
 				snakeLength=(window.snake.sct+5)*23;
 				
-				var minCenterRadius = snakeLength*1.5;
-				if (bot.predatorMode) minCenterRadius = minCenterRadius*2;
+				var minCenterRadius = snakeLength*1.2;
+				if (bot.predatorMode) minCenterRadius = minCenterRadius*1.5;
 				
 				minCenterRadius=Math.min(bot.MAP_R-snakeLength,minCenterRadius);
 				
@@ -1160,6 +1182,9 @@ var bot = window.bot = (function() {
 
 			bot.headCircleRadius = bot.opt.radiusMult * (bot.snakeRadius) / 1.8;
 //			if (bot.predatorMode) bot.headCircleRadius=bot.headCircleRadius*1.3;
+			if (bot.isBotRacer && (bot.snakeRadius > bot.minPredatorRadius)) 
+				bot.headCircleRadius = bot.headCircleRadius * 1.2;
+
 			bot.frontArcAngle = bot.arcSize;
 			bot.frontArcRadius = bot.speedMult * bot.headCircleRadius * 1.2 ;
 			bot.fullHeadCircleRadius = bot.headCircleRadius * 3;
@@ -1172,7 +1197,6 @@ var bot = window.bot = (function() {
 			if (bot.isCollision > 0)
 				bot.isCollision--;
 				
-			bot.fencingSnake = 0;
 			bot.isHeadCollision = false;
 			bot.frontCollision = 0;
             
@@ -1269,15 +1293,17 @@ var bot = window.bot = (function() {
 			var foodWeights = [];
 			
 			var sx = window.snake.xx;
+            var a;
+            var gotoda;
 			var sy = window.snake.yy;
 			var headCircleRadius2 = Math.pow(bot.headCircleRadius, 2);
 			var fullHeadCircleRadius22 = Math.pow(bot.fullHeadCircleRadius * 2, 2);
 
 
             for (var i = 0; i < window.foods.length && window.foods[i] !== null; i++) {
-                var a;
+                
                 var da;
-                var gotoda;
+                
 				var f = window.foods[i];
 				var cx = f.xx;
 				var cy = f.yy;
@@ -1380,6 +1406,14 @@ var bot = window.bot = (function() {
 				
             }
 
+			if (bot.isBotRacer && (bot.snakeRadius > bot.minPredatorRadius))
+			{
+				var aIndex1 = bot.getAngleIndex(sang);
+				if ((bot.collisionAngles[aIndex1] === undefined || bot.collisionAngles[aIndex1].distance > Math.pow(bot.fullHeadCircleRadius , 2)))
+				{
+					return 1;
+				}
+			}
             return bot.defaultAccel;
         },
 
@@ -1456,7 +1490,7 @@ var bot = window.bot = (function() {
 				{
 					
 				
-					if (bot.predatorMode && !bot.lowFPS)
+					if (bot.predatorMode)
 					{
 							if (bot.currentFood && bot.currentFood.sz > bot.foodAccelSize * 2) {
 								bot.lookForSnakeDelayCnt = 0;
@@ -1588,8 +1622,15 @@ var userInterface = window.userInterface = (function() {
     var original_onmousemove = window.onmousemove;
     window.oef = function() {};
     window.redraw = function() {};
-	
+/*	
 	var original_newfood = window.newFood;
+	var original_newfood_string = original_newfood.toString();
+	var newfood_string = original_newfood_string.replace(/per_color_imgs\[e.cv/gi, 'per_color_imgs[10');
+
+	window.newFood = new Function(newfood_string.substring(
+    newfood_string.indexOf('{') + 1, newfood_string.lastIndexOf('}')));	
+*/	
+	
 	
 	// Modify the redraw()-function to remove the zoom altering code
     // and replace b.globalCompositeOperation = "lighter"; to "hard-light".
@@ -1806,6 +1847,10 @@ var userInterface = window.userInterface = (function() {
                 if (e.keyCode === 84) {
                     bot.isBotEnabled = !bot.isBotEnabled;
                 }
+                // Letter `R` to toggle racer mode
+                if (e.keyCode === 82) {
+                    bot.isBotRacer = !bot.isBotRacer;
+                }
                 // Letter 'U' to toggle debugging (console)
                 if (e.keyCode === 85) {
                     window.logDebugging = !window.logDebugging;
@@ -2014,6 +2059,7 @@ var userInterface = window.userInterface = (function() {
             oContent.push('[O] mobile rendering: ' + ht(window.mobileRender));
             oContent.push('[A/S] radius multiplier: ' + bot.opt.radiusMult);
 			oContent.push('[P] predator: ' + ht(bot.predatorMode));
+			oContent.push('[R] racer: ' + ht(bot.isBotRacer));
 			oContent.push('[N] mouse follow: ' + ht(bot.mouseFollow));
 			oContent.push('[M] manually feed: ' + ht(bot.manualFood));
             oContent.push('[D] quick radius change ' +bot.opt.radiusApproachSize + '/' + bot.opt.radiusAvoidSize);
