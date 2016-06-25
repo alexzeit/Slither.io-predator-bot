@@ -375,7 +375,7 @@ var bot = window.bot = (function() {
 		mouseFollow: false,
 		predatorMode: true,
 		doRedraw: true,
-		resetZoomOnLowFPS: false,
+		resetZoomOnLowFPS: true,
 		lookForSnakeDelayCnt: 0,
 		lookForSnakeDelay: 50,
 		isHunting: false,
@@ -1589,6 +1589,8 @@ var userInterface = window.userInterface = (function() {
     window.oef = function() {};
     window.redraw = function() {};
 	
+	var original_newfood = window.newFood;
+	
 	// Modify the redraw()-function to remove the zoom altering code
     // and replace b.globalCompositeOperation = "lighter"; to "hard-light".
     var original_redraw_string = original_redraw.toString();
@@ -1771,7 +1773,7 @@ var userInterface = window.userInterface = (function() {
 							
 							
 							if (bot.resetZoomOnLowFPS && bot.lowFPS) {
-								window.gsc=Math.min(window.gsc * 2,0.9);
+								window.gsc=Math.min(window.gsc * 1.3,0.9);
 								window.desired_gsc = window.gsc;
 							}
 							bot.lowFPS=true;
@@ -2112,7 +2114,7 @@ var userInterface = window.userInterface = (function() {
 				}
 
             if (window.playing && bot.isBotEnabled && window.snake !== null) {
-				window.redraw = function() {console.log("redraw")};
+				window.redraw = function() {};
                 window.onmousemove = function(b) {
 				
 					if (bot.manualFood && bot.isCollision===0) original_onmousemove();
