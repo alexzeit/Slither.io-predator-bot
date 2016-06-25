@@ -374,6 +374,8 @@ var bot = window.bot = (function() {
 		mGoToAngle: Math.PI,
 		mouseFollow: false,
 		predatorMode: true,
+		doRedraw: true,
+		resetZoomOnLowFPS: false,
 		lookForSnakeDelayCnt: 0,
 		lookForSnakeDelay: 50,
 		isHunting: false,
@@ -382,7 +384,7 @@ var bot = window.bot = (function() {
         isBotRunning: false,
         isBotEnabled: true,
         lookForFood: false,
-		tooSlow: false,
+		lowFPS: false,
         collisionAngles: [],
         scores: [],
         foodTimeout: undefined,
@@ -1429,7 +1431,7 @@ var bot = window.bot = (function() {
         // Main bot
         go: function() {
             bot.every();
-            if (bot.checkCollision() || bot.tooSlow) {
+            if (bot.checkCollision()) {
                 bot.lookForFood = false;
 				bot.isHunting=false;
 				bot.targetSnake=0;
@@ -1454,7 +1456,7 @@ var bot = window.bot = (function() {
 				{
 					
 				
-					if (bot.predatorMode)
+					if (bot.predatorMode && !bot.lowFPS)
 					{
 							if (bot.currentFood && bot.currentFood.sz > bot.foodAccelSize * 2) {
 								bot.lookForSnakeDelayCnt = 0;
@@ -1757,15 +1759,26 @@ var userInterface = window.userInterface = (function() {
             fpsTimer: function() {
                 if (window.playing && window.fps && window.lrd_mtm) {
                     if (Date.now() - window.lrd_mtm > 970) {
-                        userInterface.framesPerSecond.fps = window.fps;
-						if (window.fps+4<bot.opt.targetFps){
-							bot.tooSlow=true;
-							window.gsc=Math.min(window.gsc * 2,0.9);
-							window.desired_gsc = window.gsc;
+						var fpsa=userInterface.framesPerSecond.fps = window.fps;
+                        
+						
+						if (bot.lowFPS) fpsa=fpsa*2;
+						
+						if (fpsa+4<bot.opt.targetFps){
+						
+						
+							
+							
+							
+							if (bot.resetZoomOnLowFPS && bot.lowFPS) {
+								window.gsc=Math.min(window.gsc * 2,0.9);
+								window.desired_gsc = window.gsc;
+							}
+							bot.lowFPS=true;
 
 						}
 						else
-							bot.tooSlow=false;
+							bot.lowFPS=false;
                     }
                 }
             }
@@ -2070,7 +2083,14 @@ var userInterface = window.userInterface = (function() {
             canvasUtil.maintainZoom();
             original_oef();
             // Modified slither.io redraw function
-            new_redraw();
+			if (bot.lowFPS) 
+				bot.doRedraw = !bot.doRedraw;
+			else
+				bot.doRedraw=true;
+			
+			if (bot.doRedraw)	
+				new_redraw();
+				
 				bot.pingDelay++;
                 if (window.bso !== undefined && bot.pingDelay > 30) {
 				
